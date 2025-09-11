@@ -33,4 +33,44 @@ dólares.'], 400);
  'resultado_en_pesos' => round($resultado, 2)
  ]);
  }
+
+ // Formulario
+    public function formulario()
+    {
+        return view('cotizar/cotizar');
+    }
+
+    // Procesar formulario
+    public function procesar(Request $request)
+    {
+        $valorUSD = $request->input('valor');
+        $tipo = $request->input('tipo', 'oficial');
+
+        if (!$valorUSD || !is_numeric($valorUSD)) {
+            return back()->withErrors(['valor' => 'Debe ingresar un valor numérico en dólares.']);
+        }
+
+        $baseUrl = config('services.dolarapi.url');
+        $response = Http::get("{$baseUrl}/{$tipo}");
+
+        if ($response->failed()) {
+            return back()->withErrors(['api' => 'No se pudo obtener la cotización.']);
+        }
+
+        $data = $response->json();
+        $cotizacion = $data['venta'] ?? null;
+
+        if (!$cotizacion) {
+            return back()->withErrors(['api' => 'Cotización no disponible.']);
+        }
+
+        $resultado = $valorUSD * $cotizacion;
+
+        return view('cotizar.resultado', [
+            'tipo' => $tipo,
+            'valor_dolar' => $valorUSD,
+            'cotizacion' => $cotizacion,
+            'resultado_en_pesos' => round($resultado, 2)
+        ]);
+    }
 }
