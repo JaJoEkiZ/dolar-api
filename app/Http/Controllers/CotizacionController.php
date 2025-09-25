@@ -126,22 +126,39 @@ class CotizacionController extends Controller
     public function promedioPorMes(Request $request)
     {
         $request->validate([
-            'mes' => 'required|integer|min:1|max:12',
+            'mes' => 'required|string',
             'anio' => 'nullable|integer|min:2000',
         ]);
 
-        $mes = $request->query('mes');
-        $anio = $request->query('anio', now()->year); // Si no pasa año, toma el actual
+        $meses = [
+            1 => 'enero', 2 => 'febrero', 3 => 'marzo', 4 => 'abril',
+            5 => 'mayo', 6 => 'junio', 7 => 'julio', 8 => 'agosto',
+            9 => 'septiembre', 10 => 'octubre', 11 => 'noviembre', 12 => 'diciembre'
+        ];
+
+        $mesTexto = strtolower($request->query('mes'));
+        $mesNumero = array_search($mesTexto, $meses);
+
+        if (!$mesNumero) {
+            return response()->json(['error' => 'Mes inválido.'], 400);
+        }
+
+        $anio = $request->query('anio', now()->year);
 
         $data = DB::table('cotizacions')
-            ->selectRaw("YEAR(created_at) as anio, MONTH(created_at) as mes, ROUND(AVG(tasa), 2) as promedio")
-            ->whereMonth('created_at', $mes)
+            ->selectRaw("YEAR(created_at) as anio, ROUND(AVG(tasa), 2) as promedio")
+            ->whereMonth('created_at', $mesNumero)
             ->whereYear('created_at', $anio)
-            ->groupBy('anio', 'mes')
-            ->first(); // solo devuelve el promedio del mes
+            ->groupBy('anio')
+            ->first();
+
+        if ($data) {
+            $data->mes = $meses[$mesNumero]; // 🔹 Agregar nombre del mes al JSON
+        }
 
         return response()->json($data);
     }
+
 
 
     //promedio mensual por tipo
@@ -149,27 +166,46 @@ class CotizacionController extends Controller
     public function promedioPorTipoYMes(Request $request)
     {
         $request->validate([
-            'mes' => 'required|integer|min:1|max:12',
+            'tipo' => 'required|string',
+            'mes' => 'required|string',
             'anio' => 'nullable|integer|min:2000',
         ]);
-
-        $mes = $request->query('mes');
+    
+        $meses = [
+            1 => 'enero', 2 => 'febrero', 3 => 'marzo', 4 => 'abril',
+            5 => 'mayo', 6 => 'junio', 7 => 'julio', 8 => 'agosto',
+            9 => 'septiembre', 10 => 'octubre', 11 => 'noviembre', 12 => 'diciembre'
+        ];
+    
+        $mesTexto = strtolower($request->query('mes'));
+        $mesNumero = array_search($mesTexto, $meses);
+    
+        if (!$mesNumero) {
+            return response()->json(['error' => 'Mes inválido.'], 400);
+        }
+    
         $anio = $request->query('anio', now()->year);
-
+        $tipo = strtolower($request->query('tipo'));
+    
         $data = DB::table('cotizacions')
             ->selectRaw("
                 JSON_UNQUOTE(JSON_EXTRACT(respuesta_completa, '$.tipo')) as tipo,
                 YEAR(created_at) as anio,
-                MONTH(created_at) as mes,
-                ROUND(AVG(tasa),2) as promedio
+                ROUND(AVG(tasa), 2) as promedio
             ")
-            ->whereMonth('created_at', $mes)
+            ->whereMonth('created_at', $mesNumero)
             ->whereYear('created_at', $anio)
-            ->groupBy('tipo', 'anio', 'mes')
-            ->get();
-
-        return response()->json($data);
+            ->whereRaw("LOWER(JSON_UNQUOTE(JSON_EXTRACT(respuesta_completa, '$.tipo'))) = ?", [$tipo])
+            ->groupBy('tipo', 'anio')
+            ->first();
+    
+        if ($data) {
+            $data->mes = $meses[$mesNumero];
+        }
+    
+        return response()->json($data ?: ['error' => 'No hay datos para ese mes/tipo.']);
     }
+
 
 
 }
