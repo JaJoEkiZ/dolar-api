@@ -28,7 +28,7 @@
                 <option value="oficial">Oficial</option>
                 <option value="blue">Blue</option>
                 <option value="mep">MEP</option>
-                <option value="ccl">CCL</option>
+                <option value="tarjeta">Tarjeta</option>
             </select>
         </div>
 
