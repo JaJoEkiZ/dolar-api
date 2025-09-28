@@ -10,3 +10,10 @@ Route::get('/convertir', [CotizacionController::class, 'convertir']);
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+Route::get('/cotizaciones/rango', [CotizacionController::class, 'listarPorFecha']);
+
+Route::get('/cotizaciones/promedio-por-mes', [CotizacionController::class, 'promedioPorMes']);
+Route::get('/cotizaciones/promedio-por-tipo-y-mes', [CotizacionController::class, 'promedioPorTipoYMes']);
+
+
