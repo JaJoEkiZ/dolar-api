@@ -27,7 +27,6 @@
             <select name="tipo" id="tipo" class="border rounded w-full p-2">
                 <option value="oficial">Oficial</option>
                 <option value="blue">Blue</option>
-                <option value="mep">MEP</option>
                 <option value="tarjeta">Tarjeta</option>
             </select>
         </div>
