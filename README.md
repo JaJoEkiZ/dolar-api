@@ -15,7 +15,7 @@
 (https://www.dolarapp.xo.je/cotizar)
 
 ## Documentación:
- (ttps://documenter.getpostman.com/view/45337450/2sB3QCTZPU)
+ (https://documenter.getpostman.com/view/45337450/2sB3QCTZPU)
  
  ## ENDPOINTS:
  **Convertir:
